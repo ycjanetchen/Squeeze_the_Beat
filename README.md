@@ -1,7 +1,6 @@
 # Squeeze the Beat
 
 A Frankenstein prototype of a squeeze-ball alarm for blind and low-vision sleepers.
-By YuChun Chen (A20649054).
 
 **Try the app:** https://ycjanetchen.github.io/Squeeze_the_Beat/
 
