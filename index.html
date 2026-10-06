@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}</style>
+<title>Squeeze the Beat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Atkinson+Hyperlegible+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: phone app on the left, the tangible ball on the right (stacked on phones); concept + build notes below */
+:root{
+  --bg:#F2F4F7; --surface:#FFFFFF; --ink:#13202D; --muted:#55606C; --line:#D5DAE1;
+  --ball:#E8640C; --ball-deep:#B84A05; --accent:#C9530A; --good:#1E7A46; --phone:#0F1822; --phone-ink:#F4F6F8; --phone-muted:#A9B4C0; --phone-card:#1B2733;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"Atkinson Hyperlegible Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E141B; --surface:#17202A; --ink:#E9EDF2; --muted:#A3AEBA; --line:#2C3946;
+  --ball:#F07526; --ball-deep:#C2560E; --accent:#FF8A3D; --good:#4CC583; --phone:#05090D; --phone-ink:#F4F6F8; --phone-muted:#A9B4C0; --phone-card:#16212C; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E141B; --surface:#17202A; --ink:#E9EDF2; --muted:#A3AEBA; --line:#2C3946;
+  --ball:#F07526; --ball-deep:#C2560E; --accent:#FF8A3D; --good:#4CC583; --phone:#05090D; --phone-ink:#F4F6F8; --phone-muted:#A9B4C0; --phone-card:#16212C; color-scheme:dark}
+.stage{--btn:#E8640C;--btn-ink:#1A0B00;--b1:#FF9A55;--b2:#E8640C;--b3:#B84A05}
+.stage[data-ball="baseball"]{--btn:#D7263D;--btn-ink:#FFFFFF;--b1:#FFFFFF;--b2:#F3F0E8;--b3:#C9C1B0}
+.stage[data-ball="soccer"]{--btn:#2FA35B;--btn-ink:#04170B;--b1:#FFFFFF;--b2:#F0F0F0;--b3:#B9B9B9}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:16px;display:grid;gap:14px}
+.titlerow{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 20px}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(1.6rem,3.5vw,2.2rem);color:var(--accent);letter-spacing:.01em}
+h2{font-size:1.5rem}
+h3{font-size:1.05rem}
+p{margin:0}
+.lede{color:var(--muted);max-width:62ch;margin-top:8px;font-size:1.05rem}
+.eyebrow{font-family:var(--f-body);font-size:1rem;color:var(--muted);margin-top:4px}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* stage */
+.stage{display:grid;gap:32px;grid-template-columns:auto minmax(0,1fr);align-items:start}
+@media (max-width:820px){.stage{grid-template-columns:minmax(0,1fr)}}
+.phone{background:var(--phone);color:var(--phone-ink);border-radius:40px;padding:10px;width:360px;height:640px;display:flex;justify-self:center;flex:none;box-shadow:0 20px 50px -24px rgba(0,0,0,.5)}
+.screen{border-radius:28px;background:#0A1118;flex:1;min-width:0;min-height:0;padding:16px 16px 18px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+#scr-home{padding-bottom:0;gap:10px}
+
+.scroll{flex:1;min-height:0;overflow:hidden;margin-inline:-4px;padding-inline:4px;scrollbar-width:thin}
+.page{display:flex;flex-direction:column;gap:12px;padding-bottom:14px}
+.tabbar{display:grid;grid-template-columns:repeat(3,1fr);margin-inline:-16px;padding:6px 8px 10px;border-top:1px solid #1F2B37;background:#0D151D}
+.tabbar button{border:0;background:transparent;color:var(--phone-muted);display:grid;justify-items:center;gap:2px;font-size:.78rem;font-weight:700;min-height:52px;padding-top:4px;border-radius:10px}
+.tabbar svg{width:24px;height:24px}
+.tabbar button[aria-selected="true"]{color:var(--btn)}
+.topbar{display:flex;justify-content:space-between;align-items:center;font-family:var(--f-mono);font-size:.8rem;color:var(--phone-muted)}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:var(--phone-card);font-size:.85rem}
+.dot{width:10px;height:10px;border-radius:50%;background:#7A8591}
+.dot.on{background:#4CC583}.dot.off{background:#E5A11B}
+.card{background:var(--phone-card);border-radius:18px;padding:14px;display:grid;gap:10px}
+.card h3{font-size:.8rem;font-family:var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--phone-muted);font-weight:500}
+.time-big{font-family:var(--f-mono);font-weight:700;font-size:3rem;line-height:1;text-align:center;font-variant-numeric:tabular-nums}
+.time-big small{font-size:1.2rem;margin-left:6px;color:var(--phone-muted)}
+.steppers{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pbtn{min-height:52px;border-radius:14px;border:0;background:#26333F;color:var(--phone-ink);font-weight:700;font-size:1rem}
+.pbtn:hover{background:#2F3E4C}
+.pbtn.primary{background:var(--btn);color:var(--btn-ink)}
+.pbtn.primary:hover,.mic:hover{filter:brightness(1.1)}
+.pbtn.ghost{background:transparent;border:2px solid #34434F}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:44px}
+.switch{width:58px;height:34px;border-radius:999px;border:0;background:#3A4753;position:relative;flex:none}
+.switch::after{content:"";position:absolute;top:4px;left:4px;width:26px;height:26px;border-radius:50%;background:#fff;transition:transform .15s}
+.switch[aria-checked="true"]{background:#2F9E5E}
+.switch[aria-checked="true"]::after{transform:translateX(24px)}
+.tracks{display:grid;gap:6px}
+.track{display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;min-height:52px;padding:8px 12px;border-radius:12px;border:2px solid transparent;background:#222E3A;color:var(--phone-ink)}
+.track[aria-checked="true"]{border-color:var(--btn)}
+.track .bpm{font-family:var(--f-mono);font-size:.8rem;color:var(--phone-muted)}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.seg button{min-height:46px;border-radius:12px;border:2px solid #34434F;background:transparent;color:var(--phone-ink);font-weight:700}
+.seg button[aria-checked="true"]{background:var(--btn);border-color:var(--btn);color:var(--btn-ink)}
+.mic{width:76px;height:76px;margin:4px auto 0;border-radius:50%;border:0;background:var(--btn);color:var(--btn-ink);display:grid;place-items:center;position:relative}
+.mic.listening::before,.mic.listening::after{content:"";position:absolute;inset:-8px;border-radius:50%;border:3px solid var(--btn);animation:ring 1.2s ease-out infinite}
+.mic.listening::after{animation-delay:.6s}
+@keyframes ring{from{transform:scale(.9);opacity:1}to{transform:scale(1.35);opacity:0}}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:#0F1720;padding:4px;border-radius:14px}
+.modes button{min-height:44px;border:0;border-radius:10px;background:transparent;color:var(--phone-muted);font-weight:700;font-size:.92rem}
+.modes button[aria-selected="true"]{background:#2F3E4C;color:var(--phone-ink)}
+.mode{display:grid;gap:10px}
+.sayrow{display:flex;gap:8px;margin:0}
+.sayrow input{flex:1;min-width:0;min-height:52px;border-radius:14px;border:2px solid #34434F;background:#0F1720;color:var(--phone-ink);font:inherit;padding:0 14px}
+.sayrow .pbtn{padding:0 18px}
+.quick{display:flex;flex-wrap:wrap;gap:6px}
+.qchip{min-height:40px;padding:0 12px;border-radius:999px;border:1px solid #34434F;background:transparent;color:var(--phone-ink);font-size:.88rem}
+.wheels{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.wheel{display:grid;gap:4px;justify-items:stretch;text-align:center}
+.wbtn{min-height:40px;border:0;border-radius:10px;background:#26333F;color:var(--phone-ink)}
+.wval{font-family:var(--f-mono);font-size:1.8rem;font-weight:700;padding:6px 0;border-radius:10px;background:#0F1720;font-variant-numeric:tabular-nums}
+.wlab{font-size:.75rem;color:var(--phone-muted);font-family:var(--f-mono);text-transform:uppercase;letter-spacing:.08em}
+.small{font-size:.88rem}
+.steps{margin:0;padding-left:1.2em;display:grid;gap:6px}
+.research{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.rcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:grid;gap:8px;align-content:start}
+.rcard p,.rcard li{color:var(--muted);font-size:.95rem}
+.rcard ul{margin:0;padding-left:1.1em;display:grid;gap:4px}
+.stat{font-family:var(--f-mono);font-size:2rem;font-weight:700;color:var(--accent);line-height:1}
+.takeaways{margin:0;padding-left:1.2em;display:grid;gap:8px;max-width:75ch}
+.src{font-size:.85rem;color:var(--muted)}
+.src a{color:var(--accent)}
+.center{text-align:center}
+.demo-tag{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.06em;color:#1A0B00;background:#FFC48A;border-radius:999px;padding:6px 10px}
+.muted{color:var(--phone-muted)}
+.big-cta{min-height:56px;font-size:1.15rem}
+.pulse{width:160px;height:160px;margin:6px auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--b1),var(--b2) 55%,var(--b3));display:grid;place-items:center;font-family:var(--f-mono);font-weight:700;font-size:2rem;color:#1A0B00;border:2px solid var(--b3);transition:transform .08s}
+.pulse.beat{transform:scale(1.08)}
+.pulse.hit{box-shadow:0 0 0 10px rgba(76,197,131,.55)}
+.pulse.miss{box-shadow:0 0 0 10px rgba(229,161,27,.5)}
+.progress{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+.progress span{width:16px;height:16px;border-radius:50%;border:2px solid var(--phone-muted)}
+.progress span.done{background:#4CC583;border-color:#4CC583}
+
+/* ball side */
+.ballside{display:grid;gap:16px;min-width:0}
+.ballwrap{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px;display:grid;gap:16px}
+.ballsvg{width:100%;max-width:420px;margin:0 auto;display:block;cursor:pointer;touch-action:manipulation}
+.ballsvg .body{transition:transform .1s;transform-origin:210px 210px}
+.ballsvg.squeezed .body{transform:scale(1.04,.9)}
+.ballsvg.buzz{animation:buzz .25s linear 2}
+@keyframes buzz{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.ballsvg text{font-family:var(--f-body);font-size:13px;fill:var(--ink)}
+.says{font-size:1.05rem;padding:12px 14px;border-radius:12px;background:var(--bg);border:1px dashed var(--line);min-height:52px}
+.says b{color:var(--accent)}
+.ballctl{display:flex;flex-wrap:wrap;gap:8px}
+.bbtn{min-height:48px;padding:0 16px;border-radius:12px;border:2px solid var(--line);background:var(--surface);font-weight:700}
+.bbtn:hover{border-color:var(--accent)}
+.bbtn.main{background:var(--btn);border-color:var(--btn);color:var(--btn-ink)}
+.hint{color:var(--muted);font-size:.9rem}
+kbd{font-family:var(--f-mono);font-size:.85em;padding:1px 6px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.ballpick{margin-top:10px}
+.ballpick button{border-color:var(--line);color:var(--ink);min-height:44px;font-size:.92rem}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:0;padding:0;list-style:none}
+.legend li{display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:start}
+.legend svg{width:36px;height:36px}
+.legend p{color:var(--muted);font-size:.92rem}
+
+/* concept */
+.section{display:grid;gap:16px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th,td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500}
+td:first-child{color:var(--muted);width:32%}
+td s{color:var(--muted)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
+.cols ol,.cols ul{margin:0;padding-left:1.2em;display:grid;gap:8px}
+.cols li{max-width:60ch}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.screen{padding:12px 12px 14px;gap:10px}
+#scr-home{gap:8px}
+.page{gap:8px;padding-bottom:8px}
+.card{padding:10px 12px;gap:8px;border-radius:16px}
+.time-big{font-size:2.5rem}
+.time-big small{font-size:1rem}
+#untilTxt{font-size:.85rem;margin-top:-4px}
+.card>.row:first-child{min-height:30px}
+.switch{width:52px;height:30px}
+.switch::after{width:22px;height:22px}
+.switch[aria-checked="true"]::after{transform:translateX(22px)}
+.modes button{min-height:38px;font-size:.85rem}
+.mode{gap:8px}
+.mic{width:60px;height:60px;margin-top:0}
+.mic svg{width:30px;height:30px}
+#micState{font-size:.9rem;line-height:1.3}
+.sayrow input{min-height:44px;font-size:.92rem}
+.sayrow .pbtn{min-height:44px}
+.quick{flex-wrap:nowrap;gap:5px}
+.qchip{min-height:34px;padding:0 9px;font-size:.78rem;white-space:nowrap}
+.wbtn{min-height:34px}
+.wval{font-size:1.5rem;padding:4px 0}
+.small{font-size:.8rem;line-height:1.35}
+.steps{gap:4px}
+.ctarow{display:grid;grid-template-columns:1fr;gap:8px}
+.ctarow .pbtn{min-height:50px}
+.track{min-height:46px}
+.tabbar{margin-inline:-12px;padding:4px 6px 6px}
+.tabbar button{min-height:48px;font-size:.74rem}
+.topbar .chip{padding:4px 10px;font-size:.78rem}
+.pulse{width:140px;height:140px}
+.big-cta{min-height:52px}
+.phonefit{display:flex;justify-content:center;align-items:flex-start}
+.stage{grid-template-columns:auto minmax(0,1fr);gap:24px}
+@media (max-width:820px){.stage{grid-template-columns:minmax(0,1fr)}}
+.ballwrap{padding:14px 16px;gap:10px}
+.ballsvg{max-height:var(--ballmax,380px);width:auto;max-width:100%}
+.says{font-size:.98rem;padding:8px 12px;min-height:0}
+.ballpick{margin-top:6px}
+.ballpick button{min-height:38px}
+.bbtn{min-height:40px;padding:0 12px;font-size:.9rem}
+.ballctl{gap:6px}
+.hint{font-size:.82rem}
+.link{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin-top:8px;padding:8px 12px;border-radius:12px;background:var(--bg);border:1px solid var(--line);font-size:.88rem}
+.link #linkTxt{font-weight:700}
+.lmsg{color:var(--muted);font-family:var(--f-mono);font-size:.8rem;min-width:0}
+.ldot{width:10px;height:10px;border-radius:50%;background:#2E7CF6;box-shadow:0 0 0 0 rgba(46,124,246,.6)}
+.link.off .ldot{background:#8A949E}
+.link.flash{animation:lflash .7s ease-out}
+.link.flash .ldot,.link.up .ldot{animation:ldot .7s ease-out}
+.link.up{animation:lup .7s ease-out}
+.link.fail{border-color:#D9822B}
+.link.fail .lmsg{color:#B5641A}
+@keyframes lflash{0%{border-color:#2E7CF6;background:rgba(46,124,246,.14)}100%{}}
+@keyframes lup{0%{border-color:var(--btn);background:color-mix(in srgb,var(--btn) 14%,transparent)}100%{}}
+@keyframes ldot{0%{box-shadow:0 0 0 0 rgba(46,124,246,.7)}100%{box-shadow:0 0 0 12px rgba(46,124,246,0)}}
+.ballsvg .waves path{fill:none;stroke:#2E7CF6;stroke-width:4;stroke-linecap:round;opacity:0}
+.ballsvg.playing .waves path{animation:wave .9s ease-out infinite}
+.ballsvg.playing .waves path:nth-child(3n+2){animation-delay:.15s}
+.ballsvg.playing .waves path:nth-child(3n){animation-delay:.3s}
+@keyframes wave{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
+.ballsvg .glow{stroke:var(--btn);opacity:0;transition:opacity .25s}
+.ballsvg.alarm .glow{opacity:.25}
+.ballsvg.alarm.boom .glow{opacity:.85;transition:none}
+#led.blink{animation:blink .6s steps(2) infinite}
+#led.ping{fill:#FFFFFF!important}
+@keyframes blink{50%{opacity:.15}}
+.ballsvg .lift{transition:transform .35s ease}
+.ballsvg.lifted .lift{transform:translateY(-30px)}
+.ballsvg .holder-base{fill:#9AA3AD}
+.ballsvg .holder-cup{fill:#C3CAD2;stroke:#8A949E;stroke-width:2}
+.ballsvg .magnet{fill:#2E7CF6}
+.ballsvg .bolt{fill:#2FA35B;opacity:0}
+.ballsvg.charging .bolt{opacity:1;animation:boltp 1.6s ease-in-out infinite}
+@keyframes boltp{50%{opacity:.35}}
+.battbig{font-family:var(--f-mono);font-weight:700;font-size:1.5rem}
+#p-set .pbtn{min-height:44px}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Squeeze the Beat</h1>
+    <p class="eyebrow">Frankenstein prototype · squeeze alarm for blind and low-vision sleepers</p>
+  </header>
+
+  <main class="stage" id="stage" data-ball="basketball">
+    <!-- PHONE APP -->
+    <div class="phonefit" id="phonefit"><section class="phone" id="phone" aria-label="Phone app">
+      <!-- Pairing -->
+      <div class="screen" id="scr-pair" hidden>
+        <div class="topbar"><span id="clock1">7:42</span><span>Squeeze the Beat</span></div>
+        <h2 style="font-size:1.6rem">Connect your ball</h2>
+        <p class="muted">Hold the <b>triangle</b> button on the ball for 2 seconds. You'll hear "Ready to pair."</p>
+        <button class="pbtn primary big-cta" id="searchBtn">Find my ball</button>
+        <div class="card" id="foundCard" hidden>
+          <h3>Found</h3>
+          <p style="font-size:1.2rem;font-weight:700">Squeeze Ball · <span class="ballName">Basketball</span></p>
+          <p class="muted">Squeeze the ball twice to confirm it's yours.</p>
+          <p class="muted" id="pairCount">0 of 2 squeezes</p>
+        </div>
+      </div>
+
+      <!-- Home -->
+      <div class="screen" id="scr-home">
+        <div class="topbar"><span id="clock2">7:42</span><span class="chip"><span class="dot on" id="connDot"></span><span id="connText">Ball connected · 82%</span></span></div>
+        <div class="scroll">
+          <div class="page" id="p-alarm" role="tabpanel" aria-labelledby="nav-alarm">
+        <div class="card">
+          <div class="row"><h3 id="alarmLbl">Alarm</h3><button class="switch" role="switch" aria-checked="true" id="alarmSw" aria-labelledby="alarmLbl"></button></div>
+          <p class="time-big" id="alarmTime">7:00<small>AM</small></p>
+          <p class="center muted" id="untilTxt">Rings in 9 hr</p>
+          <div class="modes" role="tablist" aria-label="How to set the time">
+            <button role="tab" id="t-say" aria-selected="true" aria-controls="m-say">Say it</button>
+            <button role="tab" id="t-wheel" aria-selected="false" aria-controls="m-wheel" tabindex="-1">Wheels</button>
+            <button role="tab" id="t-ball" aria-selected="false" aria-controls="m-ball" tabindex="-1">On the ball</button>
+          </div>
+          <div id="m-say" role="tabpanel" aria-labelledby="t-say" class="mode">
+            <button type="button" class="mic" id="micBtn" aria-label="Speak your alarm time" >
+              <svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4M8.5 21h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <p class="center" id="micState" aria-live="polite"><b>Tap the mic</b> and say when to wake up</p>
+
+            <form class="sayrow" id="sayForm">
+              <input id="sayIn" autocomplete="off" aria-label="Or type the time" placeholder="Or type: 6:30 am">
+              <button class="pbtn primary" type="submit">Set</button>
+            </form>
+            <div class="quick" aria-label="Examples">
+              <button type="button" class="qchip" data-q="Wake me at 6:30 AM">6:30 AM</button>
+              <button type="button" class="qchip" data-q="Quarter past seven">Quarter past 7</button>
+              <button type="button" class="qchip" data-q="In 8 hours">In 8 hours</button>
+            </div>
+          </div>
+          <div id="m-wheel" role="tabpanel" aria-labelledby="t-wheel" class="mode" hidden>
+            <div class="wheels">
+              <div class="wheel"><button class="wbtn" data-w="h" data-d="1" tabindex="-1" aria-hidden="true">▲</button><div class="wval" role="spinbutton" tabindex="0" id="wH" data-w="h" aria-label="Hour">7</div><button class="wbtn" data-w="h" data-d="-1" tabindex="-1" aria-hidden="true">▼</button><span class="wlab">hour</span></div>
+              <div class="wheel"><button class="wbtn" data-w="m" data-d="1" tabindex="-1" aria-hidden="true">▲</button><div class="wval" role="spinbutton" tabindex="0" id="wM" data-w="m" aria-label="Minute">00</div><button class="wbtn" data-w="m" data-d="-1" tabindex="-1" aria-hidden="true">▼</button><span class="wlab">minute</span></div>
+              <div class="wheel"><button class="wbtn" data-w="ap" data-d="1" tabindex="-1" aria-hidden="true">▲</button><div class="wval" role="spinbutton" tabindex="0" id="wA" data-w="ap" aria-label="AM or PM">AM</div><button class="wbtn" data-w="ap" data-d="-1" tabindex="-1" aria-hidden="true">▼</button><span class="wlab">am / pm</span></div>
+            </div>
+            <p class="muted small">VoiceOver: swipe right to move between hour, minute and AM/PM, then swipe up or down to change. On a keyboard, use the arrow keys.</p>
+          </div>
+          <div id="m-ball" role="tabpanel" aria-labelledby="t-ball" class="mode" hidden>
+            <ol class="small steps">
+              <li>Hold the <b>ring</b> for 3 seconds. The ball says the hour.</li>
+              <li>Squeeze to add one hour. Press the <b>triangle</b> to confirm.</li>
+              <li>Squeeze to add 5 minutes. Press the <b>triangle</b> to save.</li>
+            </ol>
+            <button class="pbtn ghost" type="button" id="ballSetBtn">Start setting on the ball</button>
+          </div>
+        </div>
+            <div class="ctarow">
+              <button class="pbtn primary" id="testBtn">Ring now</button>
+            </div>
+          </div>
+          <div class="page" id="p-sound" role="tabpanel" aria-labelledby="nav-sound" hidden>
+        <div class="card">
+          <h3 id="musicLbl">Wake-up music</h3>
+          <div class="tracks" role="radiogroup" aria-labelledby="musicLbl" id="tracks"></div>
+          <button class="pbtn ghost" id="previewBtn">Play 4 squeeze beats</button>
+        </div>
+            <div class="card">
+              <h3 id="sqLbl">Squeezes on the beat to stop</h3>
+              <div class="seg" role="radiogroup" aria-labelledby="sqLbl" id="seg">
+                <button role="radio" aria-checked="false" data-n="4">4</button>
+                <button role="radio" aria-checked="true" data-n="8">8</button>
+                <button role="radio" aria-checked="false" data-n="12">12</button>
+              </div>
+            </div>
+          </div>
+          <div class="page" id="p-set" role="tabpanel" aria-labelledby="nav-set" hidden>
+            <div class="card">
+              <h3>Ball</h3>
+              <div class="row"><span id="vibLbl">Vibrate the ball</span><button class="switch" role="switch" aria-checked="true" id="vibSw" aria-labelledby="vibLbl"></button></div>
+              <div class="row"><span id="voiceLbl">Ball speaks the time</span><button class="switch" role="switch" aria-checked="true" id="voiceSw" aria-labelledby="voiceLbl"></button></div>
+            </div>
+            <div class="card">
+              <h3>Battery</h3>
+              <div class="row"><span class="battbig" id="battTxt">82%</span><span class="muted" id="battState">Charging on the holder</span></div>
+              <button class="pbtn ghost" id="readBatt">Say battery level</button>
+              <button class="pbtn ghost small" id="lowBatt">Demo: low battery at night</button>
+            </div>
+            <button class="pbtn ghost" id="forgetBtn">Forget ball and pair again</button>
+          </div>
+        </div>
+        <nav class="tabbar" role="tablist" aria-label="App sections">
+          <button role="tab" id="nav-alarm" aria-selected="true" aria-controls="p-alarm"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 9v4l2.5 2M5 4 3 6M19 4l2 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Alarm</button>
+          <button role="tab" id="nav-sound" aria-selected="false" aria-controls="p-sound" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.5" fill="currentColor"/><circle cx="17.5" cy="16" r="2.5" fill="currentColor"/></svg>Sound</button>
+          <button role="tab" id="nav-set" aria-selected="false" aria-controls="p-set" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Settings</button>
+        </nav>
+      </div>
+
+      <!-- Ringing -->
+      <div class="screen" id="scr-ring" hidden>
+        <div class="topbar"><span id="clock3">7:00</span><span>Alarm</span></div>
+        <p class="center demo-tag" id="demoTag" hidden>Demo · one squeeze on each BOOM</p>
+        <p class="center muted" id="ringTrack">Morning Dribble · 120 BPM</p>
+        <div class="pulse" id="pulse" aria-hidden="true">0/8</div>
+        <p class="center" style="font-size:1.25rem;font-weight:700" id="ringMsg">Squeeze on every BOOM</p>
+        <div class="progress" id="progress" aria-hidden="true"></div>
+        <button class="pbtn primary big-cta" id="ringSq">Squeeze (simulated)</button>
+        <p class="center muted">Hold the squeeze for 2 seconds to snooze 5 minutes.</p>
+        <button class="pbtn ghost" id="snoozeBtn">Snooze 5 minutes</button>
+      </div>
+    </section></div>
+
+    <!-- BALL -->
+    <section class="ballside" aria-label="The squeeze ball">
+      <div class="ballwrap">
+        <div>
+          <p class="eyebrow" style="margin-top:0">The ball · tap it or press <kbd>Space</kbd> to squeeze</p>
+          <div class="seg ballpick" role="radiogroup" aria-label="Ball style" id="ballPick">
+            <button role="radio" aria-checked="true" data-ball="basketball">Basketball</button>
+            <button role="radio" aria-checked="false" data-ball="baseball">Baseball</button>
+            <button role="radio" aria-checked="false" data-ball="soccer">Football (soccer)</button>
+          </div>
+          <div class="link" id="link" aria-live="polite"><span class="ldot" aria-hidden="true"></span><span id="linkTxt">Bluetooth: linked to phone</span><span class="lmsg" id="linkMsg">Waiting for the app…</span></div>
+        </div>
+        <svg class="ballsvg" id="ball" viewBox="0 0 420 420" role="button" tabindex="0" aria-label="Squeeze the ball">
+          <defs>
+            <radialGradient id="g" cx="38%" cy="32%" r="75%"><stop offset="0" style="stop-color:var(--b1)"/><stop offset=".55" style="stop-color:var(--b2)"/><stop offset="1" style="stop-color:var(--b3)"/></radialGradient>
+            <clipPath id="ballClip"><circle cx="210" cy="210" r="160"/></clipPath>
+            <pattern id="grille" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="2" fill="#1A1A1A"/></pattern>
+          </defs>
+          <rect class="holder-base" x="128" y="374" width="164" height="24" rx="10"/>
+          <g class="lift">
+          <circle class="glow" cx="210" cy="210" r="174" fill="none" stroke-width="12"/>
+          <g class="body">
+            <circle cx="210" cy="210" r="160" fill="url(#g)"/>
+            <g class="skin" data-skin="basketball">
+            <path d="M58 170 Q210 120 362 170" fill="none" stroke="#1A1A1A" stroke-width="4"/>
+            <path d="M60 250 Q210 300 360 250" fill="none" stroke="#1A1A1A" stroke-width="4"/>
+            <path d="M210 50 Q160 210 210 370" fill="none" stroke="#1A1A1A" stroke-width="4"/>
+            <path d="M120 78 Q190 210 120 342" fill="none" stroke="#1A1A1A" stroke-width="4"/>
+            <path d="M300 78 Q230 210 300 342" fill="none" stroke="#1A1A1A" stroke-width="4"/>
+            </g>
+            <g class="skin" data-skin="baseball" hidden>
+              <path d="M128 72 Q212 210 128 348" fill="none" stroke="#D7263D" stroke-width="3"/>
+              <path d="M128 72 Q212 210 128 348" fill="none" stroke="#D7263D" stroke-width="16" stroke-dasharray="2.5 9"/>
+              <path d="M292 72 Q208 210 292 348" fill="none" stroke="#D7263D" stroke-width="3"/>
+              <path d="M292 72 Q208 210 292 348" fill="none" stroke="#D7263D" stroke-width="16" stroke-dasharray="2.5 9"/>
+            </g>
+            <g class="skin" data-skin="soccer" hidden clip-path="url(#ballClip)" id="soccerSkin"></g>
+            <g class="waves" aria-hidden="true">
+              <path d="M150 300 Q138 317 150 334" /><path d="M136 292 Q118 317 136 342" /><path d="M122 284 Q98 317 122 350" />
+              <path d="M270 300 Q282 317 270 334" /><path d="M284 292 Q302 317 284 342" /><path d="M298 284 Q322 317 298 350" />
+            </g>
+            <!-- grille -->
+            <rect x="170" y="300" width="80" height="34" rx="10" fill="#F2F2F2" stroke="#1A1A1A" stroke-width="2"/>
+            <rect x="174" y="304" width="72" height="26" rx="7" fill="url(#grille)"/>
+            <!-- buttons -->
+            <g id="pwrBtn" class="hw" role="button" tabindex="0" aria-label="Power button, raised ring. Click to turn the ball on or off.">
+              <circle cx="104" cy="214" r="17" fill="#2A2A2A"/><circle cx="104" cy="214" r="10" fill="none" stroke="#F2F2F2" stroke-width="4"/>
+              <circle id="led" cx="104" cy="186" r="5" fill="#4CC583"/>
+            </g>
+            <g id="btBtn" class="hw" role="button" tabindex="0" aria-label="Bluetooth button, raised triangle. Click to start pairing.">
+              <rect x="300" y="194" width="38" height="38" rx="10" fill="#2A2A2A"/>
+              <path d="M319 201 L331 223 L307 223 Z" fill="#F2F2F2"/>
+            </g>
+          </g>
+          </g>
+          <rect class="holder-cup" x="146" y="346" width="128" height="34" rx="14"/>
+          <rect class="magnet" x="181" y="352" width="18" height="8" rx="2"/><rect class="magnet" x="221" y="352" width="18" height="8" rx="2"/>
+          <path class="bolt" d="M213 361 L204 373 L210 373 L206 384 L217 370 L211 370 Z"/>
+          <!-- callouts -->
+          <text x="14" y="408">Ring = power</text>
+          <line x1="54" y1="394" x2="98" y2="234" stroke="var(--muted)" stroke-width="1.5"/>
+          <text x="282" y="408">Triangle = pair / OK</text>
+          <line x1="350" y1="394" x2="322" y2="236" stroke="var(--muted)" stroke-width="1.5"/>
+          <text x="262" y="22">Dotted grille = speaker</text>
+          <line x1="320" y1="28" x2="236" y2="298" stroke="var(--muted)" stroke-width="1.5"/>
+        </svg>
+        <p class="says" id="says" aria-live="polite"><b>Ball:</b> Connected. Alarm set for 7:00 AM.</p>
+        <div class="ballctl">
+                    <button class="bbtn main" id="squeezeBtn">Squeeze</button>
+          <button class="bbtn" id="pwrBtn2">Ring (power)</button>
+          <button class="bbtn" id="btBtn2">Triangle</button>
+          <button class="bbtn" id="holdRing">Hold ring 3s (set alarm)</button>
+          <button class="bbtn" id="dockBtn">Put on holder</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+</div>
+<div class="sr" aria-live="assertive" id="live"></div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const TRACKS=[
+  {id:'dribble',name:'Morning Dribble',bpm:120,root:48,mel:[72,76,79,76,74,77,81,79,72,76,79,84,83,79,76,74],wave:'square'},
+  {id:'sunrise',name:'Sunrise Bounce',bpm:128,root:50,mel:[74,78,81,86,85,81,78,81,76,79,83,88,86,83,79,78],wave:'sawtooth'},
+  {id:'slow',name:'Easy Wake',bpm:104,root:45,mel:[69,72,76,79,77,76,72,74,69,72,76,81,79,76,74,72],wave:'triangle'}
+];
+const BALLS={basketball:{name:'Basketball',top:'Thick raised seam = top',tx:140,ty:138},baseball:{name:'Baseball',top:'Raised bump = top',tx:200,ty:62},soccer:{name:'Football',top:'Raised bump = top',tx:200,ty:62}};
+const S={battery:82,docked:false,drainT:0,lowWarned:false,ball:'basketball',paired:true,ballOn:true,alarmMin:7*60,alarmOn:true,track:'dribble',need:8,vib:true,voice:true,ringing:false,hits:0,pairSqueezes:0,searching:false};
+
+/* ---------- speech + announce ---------- */
+function say(text,{speak=true}={}){
+  $('#says').innerHTML='<b>Ball:</b> '+text;
+  if(speak && S.voice){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.rate=1;speechSynthesis.speak(u);}catch(e){}}
+}
+function linkState(){const L=$('#link');const on=S.ballOn&&S.paired;L.classList.toggle('off',!on);
+  $('#linkTxt').textContent=!S.ballOn?'Bluetooth: ball is off':(!S.paired?'Bluetooth: not paired':'Bluetooth: linked to phone');
+  const led=$('#led');led.classList.toggle('blink',S.ballOn&&!S.paired);led.setAttribute('fill',!S.ballOn?'#555':(S.paired?'#4CC583':'#2E7CF6'));}
+function pingLed(){const led=$('#led');led.classList.add('ping');setTimeout(()=>led.classList.remove('ping'),180);}
+function flashLink(cls,msg){const L=$('#link');L.classList.remove('flash','up','fail');void L.offsetWidth;L.classList.add(cls);$('#linkMsg').textContent=msg;}
+/* app -> ball */
+function send(label,fn){if(!(S.ballOn&&S.paired)){flashLink('fail','Not delivered: '+label+(S.ballOn?' (pair the ball first)':' (ball is off)'));announce("Couldn't reach the ball. "+(S.ballOn?'Pair it first.':'Turn it on with the ring.'));return false;}
+  flashLink('flash','Phone → Ball: '+label);pingLed();setTimeout(()=>{fn&&fn();},250);return true;}
+/* ball -> app */
+function fromBall(label){if(!S.paired)return;flashLink('up','Ball → Phone: '+label);pingLed();}
+function announce(t){const l=$('#live');l.textContent='';setTimeout(()=>l.textContent=t,30);}
+function fmt(min,spoken){min=((min%1440)+1440)%1440;let h=Math.floor(min/60),m=min%60,ap=h<12?'AM':'PM';h=h%12||12;return spoken?`${h}:${String(m).padStart(2,'0')} ${ap}`:{t:`${h}:${String(m).padStart(2,'0')}`,ap};}
+function nowMin(){const d=new Date();return d.getHours()*60+d.getMinutes();}
+function buzz(ms){ if(!S.vib) return; const b=$('#ball');b.classList.remove('buzz');void b.getBBox;requestAnimationFrame(()=>b.classList.add('buzz')); try{navigator.vibrate&&navigator.vibrate(ms);}catch(e){} }
+
+/* ---------- audio ---------- */
+let ctx=null;
+function ac(){try{if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended')ctx.resume();}catch(e){}return ctx;}
+const mtof=n=>440*Math.pow(2,(n-69)/12);
+function kick(t,vol=.9,len=.18){const c=ac();const o=c.createOscillator(),g=c.createGain();o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(40,t+len*.8);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+len);o.connect(g).connect(c.destination);o.start(t);o.stop(t+.2);}
+let noiseBuf=null;
+function noise(t,d,freq,vol){const c=ac();if(!noiseBuf){noiseBuf=c.createBuffer(1,c.sampleRate*.3,c.sampleRate);const a=noiseBuf.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=Math.random()*2-1;}
+  const src=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();src.buffer=noiseBuf;f.type='highpass';f.frequency.value=freq;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+d);src.connect(f).connect(g).connect(c.destination);src.start(t);src.stop(t+d+.02);}
+const hat=t=>noise(t,.05,7000,.18), clap=t=>{noise(t,.12,1500,.35);noise(t+.012,.1,1500,.25);};
+function tone(t,f,d,wave,vol=.12){const c=ac();const o=c.createOscillator(),g=c.createGain();o.type=wave;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(c.destination);o.start(t);o.stop(t+d+.02);}
+function earcon(kind){const c=ac();if(!c)return;const t=c.currentTime+.02;
+  const seqs={on:[60,67,72],off:[72,67,60],pair:[64,64,71],ok:[67,72,76],click:[76],snooze:[65,60]};
+  (seqs[kind]||[72]).forEach((n,i)=>tone(t+i*.11,mtof(n),.16,'sine',.18));}
+
+let timer=null,nextT=0,beatI=0,beatTimes=[],stopAfter=Infinity;
+function startMusic(maxBeats){const c=ac();if(!c)return;stopMusic();$('#ball').classList.add('playing');const tr=TRACKS.find(x=>x.id===S.track);const spb=60/tr.bpm;nextT=c.currentTime+.15;beatI=0;beatTimes=[];stopAfter=maxBeats||Infinity;
+  timer=setInterval(()=>{while(nextT<c.currentTime+.12){ if(beatI>=stopAfter){stopMusic();return;}
+      const cue=beatI%2===0;const h=spb/2;
+      if(cue)squeezeCue(nextT);else{kick(nextT,.25,.12);noise(nextT,.08,1500,.12);}
+      hat(nextT+h);
+      const bassN=tr.root+[0,0,5,7][Math.floor(beatI/4)%4];tone(nextT+h,mtof(bassN),h*.9,'sawtooth',.09);
+      const m1=tr.mel[(beatI*2)%tr.mel.length],m2=tr.mel[(beatI*2+1)%tr.mel.length];tone(nextT,mtof(m1),h*.85,tr.wave,.04);tone(nextT+h,mtof(m2),h*.85,tr.wave,.035);
+      if(cue){beatTimes.push(nextT);if(beatTimes.length>4)beatTimes.shift();}
+      const delay=(nextT-c.currentTime)*1000;if(cue)setTimeout(()=>{const bl=$('#ball');bl.classList.add('boom');setTimeout(()=>bl.classList.remove('boom'),180);if(S.ringing&&S.vib){bl.classList.remove('buzz');void bl.getBBox;requestAnimationFrame(()=>bl.classList.add('buzz'));}const p=$('#pulse');p.classList.add('beat');setTimeout(()=>p.classList.remove('beat'),160);if(S.ringing&&S.vib){try{navigator.vibrate&&navigator.vibrate(80)}catch(e){}}},Math.max(0,delay));
+      if(S.demo&&cue){const bi=beatI;if(bi>=4){const off=(bi===8)?spb*700:0;setTimeout(()=>{if(S.ringing&&S.demo){squeezeDown();setTimeout(squeezeUp,120);}},Math.max(0,delay+off));}}
+      nextT+=spb;beatI++;}},25);}
+function squeezeCue(t){kick(t,1,.35);tone(t,mtof(84),.12,'sine',.22);tone(t,mtof(91),.08,'sine',.1);}
+function stopMusic(){clearInterval(timer);timer=null;$('#ball').classList.remove('playing');}
+
+/* ---------- screens ---------- */
+function show(id){['pair','home','ring'].forEach(s=>$('#scr-'+s).hidden=(s!==id));}
+function until(){let d=(S.alarmMin-nowMin()+1440)%1440||1440;const h=Math.floor(d/60),m=d%60;return [h?`${h} hour${h>1?'s':''}`:'',m?`${m} minute${m>1?'s':''}`:''].filter(Boolean).join(' ');}
+function renderAlarm(){const f=fmt(S.alarmMin);$('#alarmTime').innerHTML=`${f.t}<small>${f.ap}</small>`;$('#alarmTime').setAttribute('aria-label','Alarm '+fmt(S.alarmMin,true));
+  $('#untilTxt').textContent=S.alarmOn?'Rings in '+until():'Alarm is off';
+  const h=Math.floor(S.alarmMin/60),m=S.alarmMin%60;
+  $('#wH').textContent=h%12||12;$('#wH').setAttribute('aria-valuetext',`${h%12||12} o'clock`);
+  $('#wM').textContent=String(m).padStart(2,'0');$('#wM').setAttribute('aria-valuetext',`${m} minutes`);
+  $('#wA').textContent=h<12?'AM':'PM';$('#wA').setAttribute('aria-valuetext',h<12?'AM':'PM');}
+function confirmAlarm(){S.alarmOn=true;$('#alarmSw').setAttribute('aria-checked','true');renderAlarm();const msg=`Alarm set for ${fmt(S.alarmMin,true)}. That's in ${until()}.`;announce(msg);send('Set alarm '+fmt(S.alarmMin,true),()=>{earcon('ok');buzz(80);say(msg);});}
+
+/* bottom nav */
+const navs=['alarm','sound','set'];
+function selNav(k,focus){navs.forEach(n=>{const b=$('#nav-'+n),on=n===k;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;$('#p-'+n).hidden=!on;});$('.scroll').scrollTop=0;if(focus)$('#nav-'+k).focus();}
+navs.forEach((n,i)=>{const b=$('#nav-'+n);b.onclick=()=>selNav(n);b.onkeydown=e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();selNav(navs[(i+(e.key==='ArrowRight'?1:2))%3],true);}};});
+/* tabs */
+const tabs=['say','wheel','ball'];
+function selTab(k,focus){tabs.forEach(t=>{const b=$('#t-'+t);const on=t===k;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;$('#m-'+t).hidden=!on;});if(focus)$('#t-'+k).focus();}
+tabs.forEach((t,i)=>{const b=$('#t-'+t);b.onclick=()=>selTab(t);b.onkeydown=e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();selTab(tabs[(i+(e.key==='ArrowRight'?1:2))%3],true);}};});
+
+/* voice / typed parser */
+const WORDS={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,fifteen:15,twenty:20,thirty:30,forty:40,fifty:50};
+function parseTime(raw){let s=raw.toLowerCase().replace(/[.,!?]/g,' ').replace(/\b(a\.?m)\b/g,'am').replace(/\b(p\.?m)\b/g,'pm');
+  Object.keys(WORDS).forEach(w=>{s=s.replace(new RegExp('\\b'+w+'\\b','g'),WORDS[w]);});
+  let m;
+  if(m=s.match(/in\s+(\d+(?:\.\d+)?)\s*(hours?|hrs?|h)\b(?:\s*(?:and\s*)?(\d+)\s*(minutes?|mins?|m)\b)?/)){return (nowMin()+Math.round(parseFloat(m[1])*60)+(m[3]?+m[3]:0))%1440;}
+  if(m=s.match(/in\s+(\d+)\s*(minutes?|mins?)/)){return (nowMin()+ +m[1])%1440;}
+  if(/\bnoon\b/.test(s))return 720; if(/\bmidnight\b/.test(s))return 0;
+  const pm=/(^|\d|\s)pm\b|evening|night|afternoon/.test(s),am=/(^|\d|\s)am\b|morning/.test(s);
+  const fix=(h,min)=>{if(h>23||min>59)return null;if(pm&&h<12)h+=12;else if(am&&h===12)h=0;return h*60+min;};
+  if(m=s.match(/half past (\d{1,2})/))return fix(+m[1],30);
+  if(m=s.match(/quarter past (\d{1,2})/))return fix(+m[1],15);
+  if(m=s.match(/quarter to (\d{1,2})/))return fix((+m[1]+11)%12||12,45);
+  if(m=s.match(/(\d{1,2})\s*[:h ]\s*(\d{2})\b/))return fix(+m[1],+m[2]);
+  if(m=s.match(/\b(\d{3,4})\b/)){const n=m[1].padStart(4,'0');return fix(+n.slice(0,2),+n.slice(2));}
+  if(m=s.match(/(\d{1,2})\s*(?:o'?clock)?/))return fix(+m[1],0);
+  return null;}
+$('#sayForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#sayIn').value.trim();if(!v)return;const r=parseTime(v);
+  if(r==null){announce(`Sorry, I didn't catch a time in "${v}". Try "6:30 AM" or "in 8 hours".`);say(`I didn't catch a time. Try "6:30 AM".`,{speak:false});return;}
+  S.alarmMin=r;confirmAlarm();$('#sayIn').value='';});
+const MIC_SAMPLES=['Wake me at 6:30 AM','Quarter past seven','Set an alarm for 7 AM','In 8 hours'];let micI=0,micBusy=false;
+$('#micBtn').onclick=()=>{if(micBusy)return;micBusy=true;const b=$('#micBtn');b.classList.add('listening');b.setAttribute('aria-label','Listening');earcon('pair');
+  $('#micState').innerHTML='<b>Listening…</b>';
+  const heard=$('#sayIn').value.trim()||MIC_SAMPLES[micI++%MIC_SAMPLES.length];
+  setTimeout(()=>{b.classList.remove('listening');b.setAttribute('aria-label','Speak your alarm time');earcon('click');
+    $('#micState').innerHTML='You said: <b>"'+heard.replace(/[<>&]/g,'')+'"</b>';$('#sayIn').value=heard;$('#sayForm').requestSubmit();micBusy=false;},1800);};
+document.querySelectorAll('.qchip').forEach(c=>c.onclick=()=>{$('#sayIn').value=c.dataset.q;$('#sayForm').requestSubmit();});
+
+/* wheels */
+function wheelStep(w,d){let h=Math.floor(S.alarmMin/60),m=S.alarmMin%60;
+  if(w==='h'){const pmNow=h>=12;let h12=(h%12)+d;h12=(h12+12)%12;h=h12+(pmNow?12:0);}
+  else if(w==='m'){m=(m+5*d+60)%60;m=Math.round(m/5)*5%60;}
+  else h=(h+12)%24;
+  S.alarmMin=h*60+m;renderAlarm();clearTimeout(wheelStep.t);wheelStep.t=setTimeout(confirmAlarm,1200);}
+document.querySelectorAll('.wbtn').forEach(b=>b.onclick=()=>wheelStep(b.dataset.w,+b.dataset.d));
+document.querySelectorAll('.wval').forEach(v=>v.addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();wheelStep(v.dataset.w,e.key==='ArrowUp'?1:-1);}}));
+
+/* set on the ball (talking-clock style) */
+function ballSetStart(){selNav('alarm');selTab('ball');if(!S.ballOn){say('The ball is off. Press the ring to turn it on.');return;}S.setMode='hour';S.setH=Math.floor(S.alarmMin/60);S.setM=S.alarmMin%60;earcon('pair');buzz(200);
+  say(`Setting the alarm. Hour: ${fmt(S.setH*60,true).replace(':00','')}. Squeeze to go up. Press the triangle when it's right.`);}
+function ballSetSqueeze(){if(S.setMode==='hour'){S.setH=(S.setH+1)%24;say(fmt(S.setH*60,true).replace(':00',''));}else{S.setM=(S.setM+5)%60;say(`${fmt(S.setH*60+S.setM,true)}`);}earcon('click');buzz(30);}
+function ballSetTriangle(){if(S.setMode==='hour'){S.setMode='minute';earcon('click');say(`Minutes: ${S.setM}. Squeeze to add 5 minutes. Press the triangle to save.`);}
+  else{S.setMode=null;S.alarmMin=S.setH*60+S.setM;earcon('ok');buzz(150);S.alarmOn=true;$('#alarmSw').setAttribute('aria-checked','true');renderAlarm();say(`Saved. Alarm set for ${fmt(S.alarmMin,true)}. That's in ${until()}.`);fromBall('Alarm saved '+fmt(S.alarmMin,true));announce('Alarm set on the ball for '+fmt(S.alarmMin,true));}}
+$('#ballSetBtn').onclick=()=>send('Start setting the alarm',ballSetStart);
+function renderConn(){const d=$('#connDot');d.className='dot '+(S.ballOn?'on':'off');$('#connText').textContent=S.ballOn?BALLS[S.ball].name+' · '+(S.docked&&S.battery<100?'Charging ':'')+S.battery+'%':'Ball is off';renderBatt();linkState();}
+function renderTracks(){const w=$('#tracks');w.innerHTML='';TRACKS.forEach(t=>{const b=document.createElement('button');b.className='track';b.setAttribute('role','radio');b.setAttribute('aria-checked',String(t.id===S.track));b.innerHTML=`<span>${t.name}</span><span class="bpm">${t.bpm} BPM</span>`;b.setAttribute('aria-label',`${t.name}, ${t.bpm} beats per minute`);b.onclick=()=>{S.track=t.id;renderTracks();announce(t.name+' selected');send('Music: '+t.name,()=>{say(t.name+' saved as your alarm.',{speak:false});startMusic(4);});};w.appendChild(b);});}
+function tick(){const d=new Date();const f=fmt(nowMin());['#clock1','#clock2'].forEach(s=>$(s).textContent=f.t);if(!S.ringing)$('#clock3').textContent=f.t;if(d.getSeconds()===0)renderAlarm();
+  if(S.alarmOn&&S.paired&&S.ballOn&&!S.ringing&&d.getSeconds()===0&&nowMin()===S.alarmMin)ring();}
+setInterval(tick,1000);tick();
+
+/* ---------- home controls ---------- */
+function sw(el,key,label,onBall){el.onclick=()=>{S[key]=!S[key];el.setAttribute('aria-checked',String(S[key]));announce(label+(S[key]?' on':' off'));renderAlarm();send(label+(S[key]?' on':' off'),()=>onBall(S[key]));};}
+sw($('#alarmSw'),'alarmOn','Alarm',on=>{earcon(on?'on':'off');say(on?`Alarm on. ${fmt(S.alarmMin,true)}.`:'Alarm off.');});
+sw($('#vibSw'),'vib','Vibration',on=>{if(on){buzz(400);say('Vibration on.');}else{earcon('off');say('Vibration off.');}});
+sw($('#voiceSw'),'voice','Ball voice',on=>{earcon(on?'on':'off');if(on)say('Voice on. I will tell you the time.');else say('Voice off. I will use beeps only.',{speak:false});});
+document.querySelectorAll('#seg button').forEach(b=>b.onclick=()=>{S.need=+b.dataset.n;document.querySelectorAll('#seg button').forEach(x=>x.setAttribute('aria-checked',String(x===b)));announce(S.need+' squeezes to stop');send(`Stop after ${S.need} squeezes`,()=>{buzz(60);say(`To stop the alarm, squeeze ${S.need} times on the boom.`);});});
+$('#previewBtn').onclick=()=>send('Play preview',()=>{say('Playing '+TRACKS.find(x=>x.id===S.track).name+'. Squeeze on the boom.',{speak:false});startMusic(8);});
+$('#testBtn').onclick=()=>send('Ring now',ring);
+$('#forgetBtn').onclick=()=>{send('Forget this phone',()=>{});S.paired=false;linkState();S.pairSqueezes=0;$('#foundCard').hidden=true;$('#searchBtn').hidden=false;show('pair');say('Disconnected.',{speak:false});$('#searchBtn').focus();};
+
+/* ---------- pairing ---------- */
+function startSearch(){if(S.paired||S.searching)return;if(!S.ballOn){say('The ball is off. Press the ring first.');return;}S.searching=true;earcon('pair');say('Ready to pair.');$('#searchBtn').textContent='Searching…';$('#led').classList.add('blink');$('#led').setAttribute('fill','#2E7CF6');
+  setTimeout(()=>{S.searching=false;$('#searchBtn').hidden=true;$('#searchBtn').textContent='Find my ball';$('#foundCard').hidden=false;$('#pairCount').textContent='0 of 2 squeezes';announce('Squeeze Ball found. Squeeze the ball twice to confirm.');},1200);}
+$('#searchBtn').onclick=startSearch;
+
+/* ---------- ringing ---------- */
+function ring(){S.ringing=true;$('#ball').classList.add('alarm');S.hits=0;show('ring');const tr=TRACKS.find(x=>x.id===S.track);$('#ringTrack').textContent=`${tr.name} · ${tr.bpm} BPM`;$('#clock3').textContent=fmt(nowMin()).t;
+  $('#progress').innerHTML=Array.from({length:S.need},()=>'<span></span>').join('');$('#pulse').textContent=`0/${S.need}`;$('#ringMsg').textContent='Squeeze on every BOOM';
+  say(`Good morning. It's ${fmt(nowMin(),true)}. Squeeze the ball on every boom to stop the alarm.`);startMusic();}
+function endRing(msg,earc){S.ringing=false;$('#ball').classList.remove('alarm');S.demo=false;$('#demoTag').hidden=true;stopMusic();earcon(earc);say(msg);show('home');}
+function demo(){if(!S.ballOn){S.ballOn=true;}if(!S.paired){S.paired=true;}renderConn();S.setMode=null;send('Start squeeze demo',()=>{S.demo=true;ring();$('#demoTag').hidden=false;});}
+$('#ringSq').addEventListener('pointerdown',e=>{e.preventDefault();squeezeDown();});$('#ringSq').addEventListener('pointerup',squeezeUp);$('#ringSq').addEventListener('pointerleave',()=>{if(ball.classList.contains('squeezed'))squeezeUp();});
+$('#snoozeBtn').onclick=()=>{fromBall('Snooze 5 minutes');S.alarmMin=(nowMin()+5)%1440;renderAlarm();endRing('Snoozing. I will wake you at '+fmt(S.alarmMin,true)+'.','snooze');};
+
+function judge(){const c=ac();if(!c||!beatTimes.length)return false;const t=c.currentTime;const tr=TRACKS.find(x=>x.id===S.track);const win=Math.min(.22,(60/tr.bpm)*2*.2);return beatTimes.some(b=>Math.abs(b-t)<win);}
+
+/* ---------- squeeze ---------- */
+let downAt=0,holdTimer=null;
+function squeezeDown(){ac();$('#ball').classList.add('squeezed');downAt=performance.now();
+  if(S.ringing){holdTimer=setTimeout(()=>{holdTimer=null;$('#snoozeBtn').click();},2000);onSqueeze();}}
+function squeezeUp(){$('#ball').classList.remove('squeezed');if(holdTimer){clearTimeout(holdTimer);holdTimer=null;}
+  if(!S.ringing && performance.now()-downAt<2000) onSqueeze();}
+function onSqueeze(){
+  if(!S.ballOn){return;}
+  if(S.ringing){const p=$('#pulse');const ok=judge();p.classList.remove('hit','miss');void p.offsetWidth;p.classList.add(ok?'hit':'miss');setTimeout(()=>p.classList.remove('hit','miss'),220);
+    if(ok){S.hits++;fromBall(`Squeeze on beat (${S.hits}/${S.need})`);p.textContent=`${S.hits}/${S.need}`;$('#progress').children[S.hits-1]?.classList.add('done');$('#ringMsg').textContent=S.hits>=S.need?'Alarm off':'On the beat. Keep going';
+      if(S.hits>=S.need){const wasDemo=S.demo;S.demo=false;stopMusic();setTimeout(()=>endRing(`Alarm off. Good morning. It's ${fmt(nowMin(),true)}.`,'ok'),wasDemo?1800:150);}}
+    else{fromBall('Squeeze off beat');$('#ringMsg').textContent='Wait for the next BOOM and try again';}
+    return;}
+  if(S.setMode){ballSetSqueeze();return;}
+  if(!S.paired){if($('#foundCard').hidden){say('Not paired yet. Hold the triangle to pair.');return;}
+    S.pairSqueezes++;earcon('click');buzz(40);$('#pairCount').textContent=`${S.pairSqueezes} of 2 squeezes`;
+    if(S.pairSqueezes>=2){S.paired=true;linkState();fromBall('Paired');earcon('ok');buzz(150);show('home');say(`Connected. Alarm set for ${fmt(S.alarmMin,true)}.`);announce('Ball connected');}
+    return;}
+  buzz(40);fromBall('Squeeze: tell the time');say(`It's ${fmt(nowMin(),true)}. `+(S.alarmOn?`Alarm at ${fmt(S.alarmMin,true)}.`:'Alarm is off.'));
+}
+function power(){S.ballOn=!S.ballOn;if(!S.ballOn&&S.ringing){S.ringing=false;stopMusic();show(S.paired?'home':'pair');}earcon(S.ballOn?'on':'off');buzz(S.ballOn?120:60);say(S.ballOn?'On.':'Off.');renderConn();if(S.ballOn)fromBall('Ball turned on');else flashLink('fail','Ball turned off. The app can\'t reach it.');}
+function pairBtn(){if(S.setMode){ballSetTriangle();return;}if(S.paired){earcon('click');say('Already connected to your phone.');return;}show('pair');startSearch();}
+
+const ball=$('#ball');
+ball.addEventListener('pointerdown',e=>{if(e.target.closest('.hw'))return;squeezeDown();});
+ball.addEventListener('pointerup',e=>{if(e.target.closest('.hw'))return;squeezeUp();});
+ball.addEventListener('pointerleave',()=>{if(ball.classList.contains('squeezed'))squeezeUp();});
+$('#pwrBtn').addEventListener('click',power);$('#btBtn').addEventListener('click',pairBtn);
+['#pwrBtn','#btBtn'].forEach(s=>$(s).addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();$(s).dispatchEvent(new Event('click'));}}));
+$('#pwrBtn2').onclick=power;$('#holdRing').onclick=()=>{ballSetStart();fromBall('Setting alarm on the ball');};$('#btBtn2').onclick=pairBtn;
+const sb=$('#squeezeBtn');sb.addEventListener('pointerdown',squeezeDown);sb.addEventListener('pointerup',squeezeUp);sb.addEventListener('pointerleave',()=>{if(ball.classList.contains('squeezed'))squeezeUp();});
+sb.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(!e.repeat)squeezeDown();}});sb.addEventListener('keyup',e=>{if(e.key==='Enter')squeezeUp();});
+let spaceDown=false;
+document.addEventListener('keydown',e=>{if(e.code!=='Space')return;const t=e.target;if(t.closest&&(t.closest('.hw')))return;if(t!==document.body&&t!==ball&&t!==sb&&!S.ringing)return;e.preventDefault();if(!spaceDown){spaceDown=true;squeezeDown();}});
+document.addEventListener('keyup',e=>{if(e.code!=='Space'||!spaceDown)return;e.preventDefault();spaceDown=false;squeezeUp();});
+
+(function buildSoccer(){const g=$('#soccerSkin');const P=(cx,cy,r,rot)=>Array.from({length:5},(_,i)=>{const a=(rot+i*72)*Math.PI/180;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];});
+  const pts=a=>a.map(p=>p.map(v=>v.toFixed(1)).join(',')).join(' ');let h='';const C=P(210,200,46,-90);
+  C.forEach(([x,y],i)=>{const a=(-90+i*72)*Math.PI/180;const ox=210+118*Math.cos(a),oy=200+118*Math.sin(a);h+=`<line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${ox.toFixed(1)}" y2="${oy.toFixed(1)}" stroke="#1A1A1A" stroke-width="3"/>`;});
+  for(let i=0;i<5;i++){const a=(-54+i*72)*Math.PI/180;h+=`<polygon points="${pts(P(210+150*Math.cos(a),200+150*Math.sin(a),46,-54+i*72+180))}" fill="#1A1A1A"/>`;}
+  C.forEach(([x,y],i)=>{const n=C[(i+1)%5];});
+  h+=`<polygon points="${pts(C)}" fill="#1A1A1A"/>`;g.innerHTML=h;})();
+function setBall(k){S.ball=k;$('#stage').dataset.ball=k;document.querySelectorAll('.skin').forEach(g=>{if(g.dataset.skin===k)g.removeAttribute('hidden');else g.setAttribute('hidden','');});
+  document.querySelectorAll('#ballPick button').forEach(b=>b.setAttribute('aria-checked',String(b.dataset.ball===k)));
+  const B=BALLS[k];
+  document.querySelectorAll('.ballName').forEach(e=>e.textContent=B.name);renderConn();}
+document.querySelectorAll('#ballPick button').forEach(b=>b.onclick=()=>{setBall(b.dataset.ball);earcon('click');say(BALLS[b.dataset.ball].name+' style connected.',{speak:false});fromBall('Ball type: '+BALLS[b.dataset.ball].name);});
+function fit(){const ph=$('#phone'),box=$('#phonefit');const top=box.getBoundingClientRect().top+window.scrollY;
+  const availH=window.innerHeight-top-28, availW=box.clientWidth||360;let k=Math.min(1.25,availH/640,availW/360);k=Math.max(k,.6);
+  ph.style.zoom=k;const bw=document.querySelector('.ballwrap');document.documentElement.style.setProperty('--ballmax',Math.max(200,window.innerHeight-top-340)+'px');}
+window.addEventListener('resize',fit);if(document.fonts)document.fonts.ready.then(fit);
+function renderBatt(){$('#battTxt').textContent=S.battery+'%';
+  $('#battState').textContent=S.docked?(S.battery>=100?'Fully charged':'Charging on the holder'):(S.battery<=20?'Low. Put it on the holder':'Off the holder');
+  const b=$('#ball');b.classList.toggle('lifted',!S.docked);b.classList.toggle('charging',S.docked&&S.battery<100);
+  $('#dockBtn').textContent=S.docked?'Lift off holder':'Put on holder';}
+function battSay(){return S.docked?(S.battery>=100?'Fully charged.':`Charging, ${S.battery} percent.`):`Battery ${S.battery} percent.`+(S.battery<=20?' Please put me back on the holder tonight.':'');}
+function dock(){S.docked=!S.docked;
+  if(S.docked){S.lowWarned=false;earcon('ok');buzz(60);say(S.battery>=100?'On the holder. Fully charged.':`On the holder. Charging, ${S.battery} percent.`);fromBall(`On holder, charging ${S.battery}%`);}
+  else{earcon('click');say(`Off the holder. Battery ${S.battery} percent.`);fromBall(`Off holder, battery ${S.battery}%`);}
+  renderConn();}
+$('#dockBtn').onclick=dock;
+$('#readBatt').onclick=()=>send('Battery level?',()=>{earcon('click');say(battSay());});
+$('#lowBatt').onclick=()=>{if(S.docked){S.docked=false;}S.battery=21;S.lowWarned=false;renderConn();send('Demo: battery drains',()=>{});};
+setInterval(()=>{if(!S.ballOn)return;
+  if(S.docked&&S.battery<100){S.battery++;if(S.battery===100){tone(ac().currentTime+.02,mtof(84),.25,'sine',.08);fromBall('Fully charged');}renderConn();}
+  else if(!S.docked&&S.battery>1&&(S.battery<=21||++S.drainT>=40)){S.drainT=0;S.battery--;renderConn();
+    if(S.battery<=20&&!S.lowWarned){S.lowWarned=true;earcon('off');buzz(200);say('Battery low. Put me back on the holder.');fromBall(`Battery low, ${S.battery}%`);announce(`Ball battery low, ${S.battery} percent. Put it back on the holder.`);}}
+},3000);
+renderAlarm();renderTracks();renderConn();show('home');fit();
+})();
+</script>
+
+</body>
+</html>
